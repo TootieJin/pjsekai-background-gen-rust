@@ -52,15 +52,20 @@ fn main() {
             .unwrap()
             .to_string()
     });
-    let version = if let Some(version) = matches.opt_str("v") {
-        let version = version.parse::<u32>();
-        if version.is_err() {
-            console::error("バージョンは1か3を指定してください。");
-            std::process::exit(1);
+    let version = matches.opt_str("v").map_or(3, |v| {
+        match v.trim().parse::<u32>() {
+            Ok(n) if n == 1 || n == 3 => n,
+            _ => {
+                console::error("バージョンは1か3を指定してください。");
+                std::process::exit(1);
+            }
         }
-        version.unwrap()
+    });
+    let input = if !matches.free.is_empty() {
+        matches.free[0].clone()
     } else {
-        3
+        print_usage(&program, opts);
+        return;
     };
     console::info("背景を生成中...");
     let input_image = match image::open(input.as_str()) {
